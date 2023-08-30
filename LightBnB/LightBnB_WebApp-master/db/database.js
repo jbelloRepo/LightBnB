@@ -1,18 +1,15 @@
 const properties = require("./json/properties.json");
 const users = require("./json/users.json");
 
-const { Pool } = require('pg');
+const { Pool } = require("pg");
 
 const pool = new Pool({
-  host: 'localhost',
-  database: 'lightbnb'
+  host: "localhost",
+  database: "lightbnb",
 });
 
 // the following assumes that you named your connection variable `pool`
 // pool.query(`SELECT title FROM properties LIMIT 10;`).then(response => {console.log(response)})
-
-
-
 
 /// Users
 
@@ -21,18 +18,22 @@ const pool = new Pool({
  * @param {String} email The email of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithEmail = function(email) {
-  return pool.query(`
+const getUserWithEmail = function (email) {
+  return pool
+    .query(
+      `
     SELECT * FROM users 
     WHERE email = $1
-  `, [email])
-  .then(result => {
-    return result.rows[0] || null;
-  })
-  .catch(err => {
-    console.log(err.message);
-    throw err;
-  });
+  `,
+      [email]
+    )
+    .then((result) => {
+      return result.rows[0] || null;
+    })
+    .catch((err) => {
+      console.log(err.message);
+      throw err;
+    });
 };
 
 /**
@@ -40,18 +41,22 @@ const getUserWithEmail = function(email) {
  * @param {string} id The id of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithId = function(id) {
-  return pool.query(`
+const getUserWithId = function (id) {
+  return pool
+    .query(
+      `
     SELECT * FROM users 
     WHERE id = $1
-  `, [id])
-  .then(result => {
-    return result.rows[0] || null;
-  })
-  .catch(err => {
-    console.log(err.message);
-    throw err;
-  });
+  `,
+      [id]
+    )
+    .then((result) => {
+      return result.rows[0] || null;
+    })
+    .catch((err) => {
+      console.log(err.message);
+      throw err;
+    });
 };
 
 /**
@@ -59,19 +64,23 @@ const getUserWithId = function(id) {
  * @param {{name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
  */
-const addUser = function(user) {
-  return pool.query(`
+const addUser = function (user) {
+  return pool
+    .query(
+      `
     INSERT INTO users (name, email, password) 
     VALUES ($1, $2, $3) 
     RETURNING *;
-  `, [user.name, user.email, user.password])
-  .then(result => {
-    return result.rows[0];
-  })
-  .catch(err => {
-    console.log(err.message);
-    throw err;
-  });
+  `,
+      [user.name, user.email, user.password]
+    )
+    .then((result) => {
+      return result.rows[0];
+    })
+    .catch((err) => {
+      console.log(err.message);
+      throw err;
+    });
 };
 
 /// Reservations
@@ -81,8 +90,10 @@ const addUser = function(user) {
  * @param {string} guest_id The id of the user.
  * @return {Promise<[{}]>} A promise to the reservations.
  */
-const getAllReservations = function(guest_id, limit = 10) {
-  return pool.query(`
+const getAllReservations = function (guest_id, limit = 10) {
+  return pool
+    .query(
+      `
     SELECT properties.*, reservations.*, AVG(property_reviews.rating) as average_rating
     FROM reservations
     JOIN properties ON reservations.property_id = properties.id
@@ -92,13 +103,14 @@ const getAllReservations = function(guest_id, limit = 10) {
     GROUP BY properties.id, reservations.id
     ORDER BY reservations.start_date DESC
     LIMIT $2;
-  `, [guest_id, limit])
-  .then(res => res.rows)
-  .catch(err => {
-    console.error('query error', err.stack);
-  });
+  `,
+      [guest_id, limit]
+    )
+    .then((res) => res.rows)
+    .catch((err) => {
+      console.error("query error", err.stack);
+    });
 };
-
 
 /// Properties
 
@@ -108,7 +120,7 @@ const getAllReservations = function(guest_id, limit = 10) {
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
-const getAllProperties = function(options, limit = 10) {
+const getAllProperties = function (options, limit = 10) {
   const queryParams = [];
   let queryString = `
     SELECT properties.*, avg(property_reviews.rating) as average_rating
@@ -140,7 +152,7 @@ const getAllProperties = function(options, limit = 10) {
   }
 
   if (whereClauses.length) {
-    queryString += "WHERE " + whereClauses.join(' AND ');
+    queryString += "WHERE " + whereClauses.join(" AND ");
   }
 
   queryString += `
@@ -168,24 +180,32 @@ const getAllProperties = function(options, limit = 10) {
  * @param {{}} property An object containing all of the property details.
  * @return {Promise<{}>} A promise to the property.
  */
-const addProperty = function(property) {
-  const addProperty = function(property) {
+const addProperty = function (property) {
+  const addProperty = function (property) {
     // Ensure integer fields have valid values or default to 0
-    property.cost_per_night = property.cost_per_night ? parseInt(property.cost_per_night * 100) : 0;
-    property.parking_spaces = property.parking_spaces ? parseInt(property.parking_spaces) : 0;
-    property.number_of_bathrooms = property.number_of_bathrooms ? parseInt(property.number_of_bathrooms) : 0;
-    property.number_of_bedrooms = property.number_of_bedrooms ? parseInt(property.number_of_bedrooms) : 0;
-  
+    property.cost_per_night = property.cost_per_night
+      ? parseInt(property.cost_per_night * 100)
+      : 0;
+    property.parking_spaces = property.parking_spaces
+      ? parseInt(property.parking_spaces)
+      : 0;
+    property.number_of_bathrooms = property.number_of_bathrooms
+      ? parseInt(property.number_of_bathrooms)
+      : 0;
+    property.number_of_bedrooms = property.number_of_bedrooms
+      ? parseInt(property.number_of_bedrooms)
+      : 0;
+
     return pool
-      .query(
-        // ... [same INSERT statement as before]
-      )
+      .query
+      // ... [same INSERT statement as before]
+      ()
       .then((res) => res.rows[0])
       .catch((err) => {
         console.log(err.message);
       });
   };
-  
+
   return pool
     .query(
       `
@@ -207,7 +227,7 @@ const addProperty = function(property) {
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *;
-      `, 
+      `,
       [
         property.owner_id,
         property.title,
@@ -222,7 +242,7 @@ const addProperty = function(property) {
         property.country,
         property.parking_spaces,
         property.number_of_bathrooms,
-        property.number_of_bedrooms
+        property.number_of_bedrooms,
       ]
     )
     .then((res) => res.rows[0])
