@@ -19,7 +19,6 @@ Lighthouse BnB is an innovative application designed to revolutionize the travel
 
 ### Functional Requirements - Checklist
 
-- [ ] Create an Entity Relationship Diagram (ERD) for Lighthouse BnB app to establish table relationships.
 - [ ] Set up project directory and create schema files within the migrations subdirectory.
 - [ ] Use appropriate data fields to define the database schema, ensuring data integrity.
 - [ ] Create seed files to populate the database with dummy data.
