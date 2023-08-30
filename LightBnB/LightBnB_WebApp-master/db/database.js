@@ -168,11 +168,67 @@ const getAllProperties = function(options, limit = 10) {
  * @param {{}} property An object containing all of the property details.
  * @return {Promise<{}>} A promise to the property.
  */
-const addProperty = function (property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+const addProperty = function(property) {
+  const addProperty = function(property) {
+    // Ensure integer fields have valid values or default to 0
+    property.cost_per_night = property.cost_per_night ? parseInt(property.cost_per_night * 100) : 0;
+    property.parking_spaces = property.parking_spaces ? parseInt(property.parking_spaces) : 0;
+    property.number_of_bathrooms = property.number_of_bathrooms ? parseInt(property.number_of_bathrooms) : 0;
+    property.number_of_bedrooms = property.number_of_bedrooms ? parseInt(property.number_of_bedrooms) : 0;
+  
+    return pool
+      .query(
+        // ... [same INSERT statement as before]
+      )
+      .then((res) => res.rows[0])
+      .catch((err) => {
+        console.log(err.message);
+      });
+  };
+  
+  return pool
+    .query(
+      `
+      INSERT INTO properties (
+        owner_id,
+        title,
+        description,
+        thumbnail_photo_url,
+        cover_photo_url,
+        cost_per_night,
+        street,
+        city,
+        province,
+        post_code,
+        country,
+        parking_spaces,
+        number_of_bathrooms,
+        number_of_bedrooms
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      RETURNING *;
+      `, 
+      [
+        property.owner_id,
+        property.title,
+        property.description,
+        property.thumbnail_photo_url,
+        property.cover_photo_url,
+        parseInt(property.cost_per_night * 100), // Assuming cost_per_night is in dollars and we need to store in cents
+        property.street,
+        property.city,
+        property.province,
+        property.post_code,
+        property.country,
+        property.parking_spaces,
+        property.number_of_bathrooms,
+        property.number_of_bedrooms
+      ]
+    )
+    .then((res) => res.rows[0])
+    .catch((err) => {
+      console.log(err.message);
+    });
 };
 
 module.exports = {
